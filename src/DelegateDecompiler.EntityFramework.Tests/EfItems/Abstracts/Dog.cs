@@ -10,5 +10,8 @@ namespace DelegateDecompiler.EntityFramework.Tests.EfItems.Abstracts
     {
         public override string Species => "Canis lupus";
         public override bool IsPet => true;
+
+        [Computed]
+        public override string SpeciesAndAge() => string.Concat(Species, " : ", Age);
     }
 }

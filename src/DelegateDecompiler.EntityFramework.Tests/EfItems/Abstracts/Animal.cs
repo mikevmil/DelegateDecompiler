@@ -4,5 +4,8 @@
     {
         [Computed]
         public abstract bool IsPet { get; }
+
+        [Computed]
+        public abstract string SpeciesAndAge();
     }
 }

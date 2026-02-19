@@ -235,6 +235,25 @@ namespace DelegateDecompiler.EntityFramework.Tests.TestGroup05BasicFeatures
             }
         }
 
+
+        [Test]
+        public void TestSelectAbstractMethodImplementedInDerivedCallingBasePropertyFromBaseType()
+        {
+            using (var env = new MethodEnvironment(classEnv))
+            {
+                //ATTEMPT
+                env.AboutToUseDelegateDecompiler();
+                var dd = env.Db.LivingBeeing.OfType<Animal>().Select(p => p.SpeciesAndAge())
+#if NO_AUTO_DECOMPILE
+                    .Decompile()
+#endif
+                    .ToList();
+
+                //VERIFY
+                Assert.That(dd, Is.Not.Empty);
+            }
+        }
+
         [Test]
         public void TestSelectSelectMany()
         {
