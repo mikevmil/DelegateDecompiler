@@ -50,6 +50,8 @@ internal class CallProcessor : IProcessor
     static Expression BuildMethodCallExpression(MethodInfo m, Address instance, Expression[] arguments,
         Address[] addresses)
     {
+        var callInstance = AlignInstanceToDeclaringType(instance, m);
+
         if (m.Name == "Add" && instance.Expression != null && typeof(IEnumerable).IsAssignableFrom(instance.Type))
         {
             switch (instance.Expression)
@@ -75,13 +77,13 @@ internal class CallProcessor : IProcessor
         {
             if (m.Name.StartsWith("get_") && arguments.Length == 0)
             {
-                return Expression.Property(instance, m);
+                return Expression.Property(callInstance, m);
             }
 
             if (m.Name.StartsWith("set_") && arguments.Length == 1)
             {
                 var value = arguments.Single();
-                var property = Expression.Property(instance, m).Member;
+                var property = Expression.Property(callInstance, m).Member;
                 var expression = Processor.BuildAssignment(instance.Expression, property, value, out bool push);
                 if (push)
                 {
@@ -165,9 +167,26 @@ internal class CallProcessor : IProcessor
         }
 
         if (instance.Expression != null)
-            return Expression.Call(instance, m, arguments);
+            return Expression.Call(callInstance, m, arguments);
 
         return Expression.Call(null, m, arguments);
+    }
+
+    static Address AlignInstanceToDeclaringType(Address instance, MethodInfo method)
+    {
+        if (instance.Expression == null || method.DeclaringType == null)
+        {
+            return instance;
+        }
+
+        if (instance.Expression is UnaryExpression cast &&
+            cast.NodeType == ExpressionType.Convert &&
+            method.DeclaringType.IsAssignableFrom(cast.Operand.Type))
+        {
+            return cast.Operand;
+        }
+
+        return instance;
     }
 
     static bool TryParseOperator(MethodInfo m, out ExpressionType type)
