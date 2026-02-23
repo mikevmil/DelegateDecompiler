@@ -241,6 +241,9 @@ namespace DelegateDecompiler.EntityFramework.Tests.TestGroup05BasicFeatures
         {
             using (var env = new MethodEnvironment(classEnv))
             {
+                //SETUP
+                var linq = env.Db.LivingBeeing.OfType<Animal>().ToList().Select(p => p.SpeciesAndAge()).ToList();
+
                 //ATTEMPT
                 env.AboutToUseDelegateDecompiler();
                 var dd = env.Db.LivingBeeing.OfType<Animal>().Select(p => p.SpeciesAndAge())
@@ -250,7 +253,7 @@ namespace DelegateDecompiler.EntityFramework.Tests.TestGroup05BasicFeatures
                     .ToList();
 
                 //VERIFY
-                Assert.That(dd, Is.Not.Empty);
+                env.CompareAndLogList(linq, dd);
             }
         }
 
